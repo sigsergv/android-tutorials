@@ -1,9 +1,11 @@
 package com.regolit.android.listview_simple_demo;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.InputStreamReader;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,8 +16,6 @@ import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-
-import com.regolit.android.listview_simple_demo.R;
 
 public class MainActivity extends Activity {
 	protected ArrayAdapter<String> mAdapter;
@@ -47,6 +47,9 @@ public class MainActivity extends Activity {
 				mAdapter.add("test");
 			}
 		});
+		
+		// восстановим содержимое списка при запуске
+		restoreListViewLines();
 	}
 
 	@Override
@@ -70,13 +73,13 @@ public class MainActivity extends Activity {
 			// открываем файл в приватном пространстве приложения
 			fos = openFileOutput("listview-lines.txt", Context.MODE_PRIVATE);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
 		}
 		int cnt = mAdapter.getCount();
 		String item;
 		
+		// считываем все элементы из адаптера и сохраняем их в файл
 		for (int i=0; i<cnt; ++i) {
 			try {
 				item = mAdapter.getItem(i) + "\n";
@@ -92,5 +95,36 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 	}
+	
+	protected void restoreListViewLines() {
+		FileInputStream fis;
+		try {
+			// открываем файл из приватного хранилища
+			fis = openFileInput("listview-lines.txt");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		// создаём «читатель» данных из файла, чтобы прочитать
+		// их построчно.
+		InputStreamReader isr = new InputStreamReader(fis);
+		BufferedReader br = new BufferedReader(isr);
+		String line;
+		
+		try {
+			while (true) {
+				line = br.readLine();
+				if (line == null) {
+					break;
+				}
+				// и каждую успешно считанную строчку добавляем
+				// в список через адаптер
+				mAdapter.add(line);
+			}
+		} catch (IOException e) {
+		}
+	}
+	
 
 }
